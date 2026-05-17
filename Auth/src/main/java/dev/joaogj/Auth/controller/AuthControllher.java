@@ -3,6 +3,7 @@ package dev.joaogj.Auth.controller;
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,9 +22,11 @@ import jakarta.validation.Valid;
 public class AuthControllher {
 
     private final UserRepository repository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthControllher(UserRepository repository){
+    public AuthControllher(UserRepository repository, PasswordEncoder passwordEncoder){
         this.repository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
 
 
@@ -35,7 +38,7 @@ public class AuthControllher {
 
     public ResponseEntity<ResgisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request){
         User newUser = new User();
-        newUser.setPassword(request.password());
+        newUser.setPassword(passwordEncoder.encode(request.password()) );
         newUser.setEmail(request.email());
         newUser.setName(request.name());
 
