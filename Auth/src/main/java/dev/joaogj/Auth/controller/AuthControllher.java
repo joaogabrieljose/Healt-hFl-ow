@@ -3,7 +3,11 @@ package dev.joaogj.Auth.controller;
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,15 +27,20 @@ public class AuthControllher {
 
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
+    private AuthenticationManager authenticationManager;
 
-    public AuthControllher(UserRepository repository, PasswordEncoder passwordEncoder){
+    public AuthControllher(UserRepository repository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager){
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
+        UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(), request.password());
+        Authentication authentication = authenticationManager.authenticate(userAndPass);
+        
         return null;
     }
 
