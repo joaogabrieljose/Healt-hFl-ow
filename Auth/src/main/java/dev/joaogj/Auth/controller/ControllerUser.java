@@ -1,5 +1,6 @@
 package dev.joaogj.Auth.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,8 +12,8 @@ import lombok.RequiredArgsConstructor;
 public class ControllerUser {
 
     @GetMapping("/dashboard")
-    public String useDashboard(){
-        return "Usuário autenticado  (USER OU ADMIN acessa! )";
+    public ResponseEntity<String> useDashboard(){
+        return ResponseEntity.ok("API Auth está a funcionar!");
     }
     
 }
