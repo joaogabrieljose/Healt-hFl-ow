@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import dev.joaogj.Auth.config.TokenConfig;
 import dev.joaogj.Auth.dto.Request.LoginRequest;
 import dev.joaogj.Auth.dto.Request.RegisterUserRequest;
 import dev.joaogj.Auth.dto.Response.LoginResponse;
@@ -22,17 +23,21 @@ import dev.joaogj.Auth.repository.UserRepository;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping
+@RequestMapping("/auth")
 public class AuthControllher {
 
     private final UserRepository repository;
     private final PasswordEncoder passwordEncoder;
     private AuthenticationManager authenticationManager;
+    private TokenConfig tokenConfig;
 
-    public AuthControllher(UserRepository repository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager){
+    public AuthControllher(UserRepository repository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+        TokenConfig tokenConfig
+    ){
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.tokenConfig = tokenConfig;
     }
 
 
@@ -40,11 +45,14 @@ public class AuthControllher {
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request){
         UsernamePasswordAuthenticationToken userAndPass = new UsernamePasswordAuthenticationToken(request.email(), request.password());
         Authentication authentication = authenticationManager.authenticate(userAndPass);
-        
-        return null;
+
+        User user = (User) authentication.getPrincipal();
+        String token = tokenConfig.generatedToken(user);
+
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 
-
+    @PostMapping("/register")
     public ResponseEntity<ResgisterUserResponse> register(@Valid @RequestBody RegisterUserRequest request){
         User newUser = new User();
         newUser.setPassword(passwordEncoder.encode(request.password()) );
