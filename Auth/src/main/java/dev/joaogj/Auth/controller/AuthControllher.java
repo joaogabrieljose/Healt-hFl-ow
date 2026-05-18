@@ -1,5 +1,7 @@
 package dev.joaogj.Auth.controller;
 
+import java.util.Set;
+
 import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import dev.joaogj.Auth.dto.Request.LoginRequest;
 import dev.joaogj.Auth.dto.Request.RegisterUserRequest;
 import dev.joaogj.Auth.dto.Response.LoginResponse;
 import dev.joaogj.Auth.dto.Response.ResgisterUserResponse;
+import dev.joaogj.Auth.entity.Role;
 import dev.joaogj.Auth.entity.User;
 import dev.joaogj.Auth.repository.UserRepository;
 import jakarta.validation.Valid;
@@ -58,6 +61,12 @@ public class AuthControllher {
         newUser.setPassword(passwordEncoder.encode(request.password()) );
         newUser.setEmail(request.email());
         newUser.setName(request.name());
+
+        if (request.role() != null) {
+            newUser.setRoles(Set.of(request.role()));
+        }else{
+            newUser.setRoles(Set.of(Role.ROLE_USER));
+        }
 
         repository.save(newUser);
 
