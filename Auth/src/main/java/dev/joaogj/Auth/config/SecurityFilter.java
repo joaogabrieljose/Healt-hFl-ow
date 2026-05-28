@@ -17,40 +17,58 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class SecurityFilter extends OncePerRequestFilter{
+public class SecurityFilter extends OncePerRequestFilter {
 
     private final TokenConfig tokenConfig;
 
-    public SecurityFilter(TokenConfig tokenConfig){
+    public SecurityFilter(TokenConfig tokenConfig) {
         this.tokenConfig = tokenConfig;
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
-                String authorizedHeader = request.getHeader("Authorization");
-                if (Strings.isNotEmpty(authorizedHeader) && authorizedHeader.startsWith("Bearer ")) {
-                    
-                    String token = authorizedHeader.substring("Bearer ".length());
-                    Optional<JWTUserData> optUser = tokenConfig.validateToken(token);
+        String authorizedHeader = request.getHeader("Authorization");
 
-                    if (optUser.isPresent()) {
-                        JWTUserData userData = optUser.get();
+        if (Strings.isNotEmpty(authorizedHeader) && authorizedHeader.startsWith("Bearer ")) {
 
-                        List<SimpleGrantedAuthority> authorities = userData.roles().stream()
-                            .map(SimpleGrantedAuthority::new).toList();
+            String token = authorizedHeader.substring("Bearer ".length()).trim();
 
-                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userData,null, authorities);
-                        SecurityContextHolder.getContext().setAuthentication(authentication);
-                        
-                        filterChain.doFilter(request, response);  
-                    }
+            Optional<JWTUserData> optUser = tokenConfig.validateToken(token);
 
-                }else{
-                    filterChain.doFilter(request, response);
-                }
-    
+            if (optUser.isPresent()) {
+
+                JWTUserData userData = optUser.get();
+                List<SimpleGrantedAuthority> authorities =
+                        userData.roles() == null
+                                ? List.of()
+                                : userData.roles()
+                                        .stream()
+                                        .map(SimpleGrantedAuthority::new)
+                                        .toList();
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userData,
+                                null,
+                                authorities
+                        );
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                filterChain.doFilter(request, response);
+                return;
+            }
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("Token invalido ou expirado");
+            return;
+
+        } else {
+            filterChain.doFilter(request, response);
+        }
     }
-    
 }

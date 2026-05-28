@@ -1,7 +1,7 @@
 package dev.joaogj.Auth.config;
 
-
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Component;
@@ -16,19 +16,26 @@ import dev.joaogj.Auth.entity.User;
 @Component
 public class TokenConfig {
 
-    private String secret = "secret";
+    // ALTERADO:
+    // Coloquei final porque o secret não deve mudar durante a execução.
+    private final String secret = "secret";
 
-    public String generatedToken(User user){
+    public String generatedToken(User user) {
+
         Algorithm algoritmo = Algorithm.HMAC256(secret);
-        return JWT.create()
-            .withClaim("userId", user.getId())
-            .withClaim("roles", user.getRoles().stream().map(Enum::name).toList())
-            .withSubject(user.getEmail())
-            .withExpiresAt(Instant.now().plusSeconds(86400))
-            .withIssuedAt(Instant.now())
-            .sign(algoritmo);
+        List<String> roles = user.getRoles().stream().map(role -> role.name()).toList();
+        if (roles.isEmpty()) {
+            throw new RuntimeException("Utilizador sem role definida");
         }
 
+        return JWT.create()
+                .withClaim("userId", user.getId())
+                .withClaim("roles", roles)
+                .withSubject(user.getEmail())
+                .withExpiresAt(Instant.now().plusSeconds(86400))
+                .withIssuedAt(Instant.now())
+                .sign(algoritmo);
+    }
 
     public Optional<JWTUserData> validateToken(String token) {
         try {
@@ -38,17 +45,21 @@ public class TokenConfig {
                     .build()
                     .verify(token);
 
-            JWTUserData userData = JWTUserData.builder()
-                    .userId(decodedJWT.getClaim("userId").asLong())
-                    .email(decodedJWT.getSubject())
-                    .roles(decodedJWT.getClaim("roles").asList(String.class))
-                    .build();
+            Long userId = decodedJWT.getClaim("userId").asLong();
+            String email = decodedJWT.getSubject();
 
-            return Optional.of(userData);
+            List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+            if (userId == null || email == null || email.isBlank()) {
+                return Optional.empty();
+            }
+            if (roles == null) {
+                roles = List.of();
+            }
+
+            return Optional.of(new JWTUserData(userId, email, roles));
 
         } catch (JWTVerificationException e) {
             return Optional.empty();
         }
     }
-    
 }
