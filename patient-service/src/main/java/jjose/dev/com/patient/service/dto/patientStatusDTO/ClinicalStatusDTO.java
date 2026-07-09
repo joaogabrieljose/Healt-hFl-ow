@@ -1,4 +1,4 @@
-package jjose.dev.com.patient.service.dto;
+package jjose.dev.com.patient.service.dto.patientStatusDTO;
 
 public record ClinicalStatusDTO(
     Long id,

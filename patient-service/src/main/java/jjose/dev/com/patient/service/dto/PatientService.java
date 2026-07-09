@@ -1,8 +1,8 @@
-package jjose.dev.com.patient.service.domain.service.dto;
+package jjose.dev.com.patient.service.dto;
 
 import java.util.List;
 
-import jjose.dev.com.patient.service.domain.service.dto.patientDTO.PatientDTO;
+import jjose.dev.com.patient.service.dto.patientDTO.PatientDTO;
 
 public interface PatientService {
     
