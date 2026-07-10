@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.dto;
+package jjose.dev.com.doctor.dto;
 
 import java.time.DayOfWeek;
 import java.util.List;

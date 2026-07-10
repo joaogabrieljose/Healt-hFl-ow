@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.domain.service;
+package jjose.dev.com.doctor.domain.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -6,9 +6,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import jjose.dev.com.doctor.domain.entity.Specialty;
-import jjose.dev.com.doctor.domain.service.SpecialtyService;
+import jjose.dev.com.doctor.domain.repository.SpecialtyRepository;
 import jjose.dev.com.doctor.dto.specialtyDTO.SpecialtyDTO;
-import jjose.dev.com.doctor.repository.SpecialtyRepository;
+import jjose.dev.com.doctor.dto.SpecialtyService;
 
 @Service
 public class SpecialtyServiceImpl implements SpecialtyService {

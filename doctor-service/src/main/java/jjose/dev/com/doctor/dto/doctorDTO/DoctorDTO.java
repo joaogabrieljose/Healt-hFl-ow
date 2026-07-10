@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.dto.doctorDTO;
+package jjose.dev.com.doctor.dto.doctorDTO;
 
 public record DoctorDTO(
         Long id,

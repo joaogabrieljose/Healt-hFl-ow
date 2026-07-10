@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.dto.doctorScheduleDTO;
+package jjose.dev.com.doctor.dto.doctorScheduleDTO;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;

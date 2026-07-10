@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.domain.service;
+package jjose.dev.com.doctor.domain.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,10 +7,11 @@ import org.springframework.stereotype.Service;
 
 import jjose.dev.com.doctor.domain.entity.Doctor;
 import jjose.dev.com.doctor.domain.entity.Specialty;
-import jjose.dev.com.doctor.domain.service.DoctorService;
+import jjose.dev.com.doctor.domain.repository.DoctorRepository;
+import jjose.dev.com.doctor.domain.repository.SpecialtyRepository;
 import jjose.dev.com.doctor.dto.doctorDTO.DoctorDTO;
-import jjose.dev.com.doctor.repository.DoctorRepository;
-import jjose.dev.com.doctor.repository.SpecialtyRepository;
+import jjose.dev.com.doctor.dto.DoctorService;
+
 
 @Service
 public class DoctorServiceImpl implements DoctorService {
@@ -41,6 +42,7 @@ public class DoctorServiceImpl implements DoctorService {
                 .orElseThrow(() -> new RuntimeException("Especialidade não encontrada com ID: " + dto.specialtyId()));
 
         Doctor doctor = toEntity(dto);
+
         doctor.setSpecialty(specialty);
         doctor.setCreatedAt(LocalDateTime.now());
         doctor.setUpdatedAt(LocalDateTime.now());

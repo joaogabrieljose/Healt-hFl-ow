@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.domain.repository;
+package jjose.dev.com.doctor.domain.repository;
 
 import java.util.List;
 import java.util.Optional;

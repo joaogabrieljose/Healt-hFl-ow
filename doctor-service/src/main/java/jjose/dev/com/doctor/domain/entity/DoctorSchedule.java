@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.domain.entity;
+package jjose.dev.com.doctor.domain.entity;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;

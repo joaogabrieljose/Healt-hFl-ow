@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.doctor.domain.service;
+package jjose.dev.com.doctor.domain.service;
 
 import java.time.DayOfWeek;
 import java.util.List;
@@ -7,10 +7,11 @@ import org.springframework.stereotype.Service;
 
 import jjose.dev.com.doctor.domain.entity.Doctor;
 import jjose.dev.com.doctor.domain.entity.DoctorSchedule;
-import jjose.dev.com.doctor.domain.service.DoctorScheduleService;
+import jjose.dev.com.doctor.domain.repository.DoctorRepository;
+import jjose.dev.com.doctor.domain.repository.DoctorScheduleRepository;
 import jjose.dev.com.doctor.dto.doctorScheduleDTO.DoctorScheduleDTO;
-import jjose.dev.com.doctor.repository.DoctorRepository;
-import jjose.dev.com.doctor.repository.DoctorScheduleRepository;
+import jjose.dev.com.doctor.dto.DoctorScheduleService;
+
 
 @Service
 public class DoctorScheduleServiceImpl implements DoctorScheduleService {
