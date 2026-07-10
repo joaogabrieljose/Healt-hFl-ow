@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: doctor-postgres
+    environment:
+      POSTGRES_DB: doctor
+      POSTGRES_USER: doctor_user
+      POSTGRES_PASSWORD: doctor_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5435:5432"
+    volumes:
+      - doctor_postgres_data:/var/lib/postgresql/data
+    networks:
+      - doctor-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doctor_user -d doctor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  doctor_postgres_data:
+    driver: local
+
+networks:
+  doctor-network:
+    driver: bridge
