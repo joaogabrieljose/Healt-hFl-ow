@@ -1,4 +1,4 @@
-package jjose.dev.com.doctor.domain.entity;
+package main.java.jjose.dev.com.doctor.domain.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
