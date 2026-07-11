@@ -1,4 +1,4 @@
-package jjose.dev.com.scheduling.domain.entity;
+package jjose.dev.com.scheduling.domain.enums;
 
 public enum AppointmentStatus {
     SCHEDULED,

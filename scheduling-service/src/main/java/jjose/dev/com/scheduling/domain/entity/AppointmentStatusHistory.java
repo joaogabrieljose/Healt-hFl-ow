@@ -1,7 +1,7 @@
 package jjose.dev.com.scheduling.domain.entity;
 
 import java.time.LocalDateTime;
-
+import jjose.dev.com.scheduling.domain.enums.AppointmentStatus;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
