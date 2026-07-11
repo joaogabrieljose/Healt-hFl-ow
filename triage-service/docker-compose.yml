@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: triage-postgres
+    environment:
+      POSTGRES_DB: triage
+      POSTGRES_USER: triage_user
+      POSTGRES_PASSWORD: triage_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5437:5432"
+    volumes:
+      - triage_postgres_data:/var/lib/postgresql/data
+    networks:
+      - triage-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triage_user -d triage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  triage_postgres_data:
+    driver: local
+
+networks:
+  triage-network:
+    driver: bridge
