@@ -6,12 +6,18 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import feign.FeignException;
+import jjose.dev.com.scheduling.client.DoctorClient;
+import jjose.dev.com.scheduling.client.PatientClient;
+import jjose.dev.com.scheduling.client.dto.DoctorResponseDTO;
+import jjose.dev.com.scheduling.client.dto.PatientResponseDTO;
 import jjose.dev.com.scheduling.domain.entity.Appointment;
 import jjose.dev.com.scheduling.domain.entity.AppointmentStatusHistory;
 import jjose.dev.com.scheduling.domain.enums.AppointmentStatus;
 
 import jjose.dev.com.scheduling.domain.repository.AppointmentRepository;
 import jjose.dev.com.scheduling.domain.repository.AppointmentStatusHistoryRepository;
+
 import jjose.dev.com.scheduling.dto.appointmentDTO.AppointmentDTO;
 
 
@@ -20,17 +26,58 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentStatusHistoryRepository statusHistoryRepository;
+    private final PatientClient patientClient;
+    private final DoctorClient doctorClient;
 
     public AppointmentServiceImpl(
             AppointmentRepository appointmentRepository,
-            AppointmentStatusHistoryRepository statusHistoryRepository
+            AppointmentStatusHistoryRepository statusHistoryRepository,
+            PatientClient patientClient,
+            DoctorClient doctorClient
     ) {
         this.appointmentRepository = appointmentRepository;
         this.statusHistoryRepository = statusHistoryRepository;
+        this.patientClient = patientClient;
+        this.doctorClient = doctorClient;
     }
 
     @Override
     public AppointmentDTO createAppointment(AppointmentDTO dto) {
+
+        // Validar se o paciente existe no patient-service
+        PatientResponseDTO patient;
+
+        try {
+            patient = patientClient.getPatientById(dto.patientId());
+        } catch (FeignException.NotFound ex) {
+            throw new RuntimeException("Paciente não encontrado com ID: " + dto.patientId());
+        } catch (FeignException ex) {
+            throw new RuntimeException("Erro ao comunicar com o patient-service.");
+        }
+
+        if (patient == null || patient.id() == null) {
+            throw new RuntimeException("Paciente não encontrado com ID: " + dto.patientId());
+        }
+
+        // Validar se o médico existe no doctor-service
+        DoctorResponseDTO doctor;
+
+        try {
+            doctor = doctorClient.getDoctorById(dto.doctorId());
+        } catch (FeignException.NotFound ex) {
+            throw new RuntimeException("Médico não encontrado com ID: " + dto.doctorId());
+        } catch (FeignException ex) {
+            throw new RuntimeException("Erro ao comunicar com o doctor-service.");
+        }
+
+        if (doctor == null || doctor.id() == null) {
+            throw new RuntimeException("Médico não encontrado com ID: " + dto.doctorId());
+        }
+
+        // Não permitir marcação com médico inativo
+        if (!"ACTIVE".equalsIgnoreCase(doctor.status())) {
+            throw new RuntimeException("Não é possível marcar consulta com um médico inativo.");
+        }
 
         // Verifica se o médico já tem consulta marcada na mesma data e hora
         boolean existsAppointment = appointmentRepository.existsByDoctorIdAndAppointmentDateAndStartTime(
