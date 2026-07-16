@@ -4,56 +4,57 @@ spring:
 
   cloud:
     gateway:
-      mvc:
-        routes:
-          - id: patient-service
-            uri: http://localhost:8081
-            predicates:
-              - Path=/api/patients/**
-            filters:
-              - StripPrefix=1
+      server:
+        webmvc:
+          routes:
+            - id: patient-service
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/patients/**
+              filters:
+                - StripPrefix=1
 
-          - id: doctor-service
-            uri: http://localhost:8082
-            predicates:
-              - Path=/api/doctors/**
-            filters:
-              - StripPrefix=1
+            - id: doctor-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/doctors/**
+              filters:
+                - StripPrefix=1
 
-          - id: specialty-service
-            uri: http://localhost:8082
-            predicates:
-              - Path=/api/specialties/**
-            filters:
-              - StripPrefix=1
+            - id: specialty-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/specialties/**
+              filters:
+                - StripPrefix=1
 
-          - id: scheduling-service
-            uri: http://localhost:8083
-            predicates:
-              - Path=/api/appointments/**
-            filters:
-              - StripPrefix=1
+            - id: scheduling-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api/appointments/**
+              filters:
+                - StripPrefix=1
 
-          - id: appointment-history-service
-            uri: http://localhost:8083
-            predicates:
-              - Path=/api/appointment-history/**
-            filters:
-              - StripPrefix=1
+            - id: appointment-history-service
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api/appointment-history/**
+              filters:
+                - StripPrefix=1
 
-          - id: triage-service
-            uri: http://localhost:8084
-            predicates:
-              - Path=/api/triages/**
-            filters:
-              - StripPrefix=1
+            - id: triage-service
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/triages/**
+              filters:
+                - StripPrefix=1
 
-          - id: vital-signs-service
-            uri: http://localhost:8084
-            predicates:
-              - Path=/api/vital-signs/**
-            filters:
-              - StripPrefix=1
+            - id: vital-signs-service
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/vital-signs/**
+              filters:
+                - StripPrefix=1
 
 server:
   port: 8080
