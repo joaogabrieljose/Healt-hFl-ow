@@ -5,6 +5,11 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import feign.FeignException;
+import jjose.dev.com.triage.client.PatientClient;
+import jjose.dev.com.triage.client.SchedulingClient;
+import jjose.dev.com.triage.client.dto.AppointmentResponseDTO;
+import jjose.dev.com.triage.client.dto.PatientResponseDTO;
 import jjose.dev.com.triage.domain.entity.Triage;
 import jjose.dev.com.triage.domain.repository.TriageRepository;
 import jjose.dev.com.triage.domain.service.TriageService;
@@ -15,13 +20,56 @@ import jjose.dev.com.triage.dto.TriageDTO;
 public class TriageServiceImpl implements TriageService {
 
     private final TriageRepository triageRepository;
+    private final PatientClient patientClient;
+    private final SchedulingClient schedulingClient;
 
-    public TriageServiceImpl(TriageRepository triageRepository) {
+    public TriageServiceImpl(
+            TriageRepository triageRepository,
+            PatientClient patientClient,
+            SchedulingClient schedulingClient
+    ) {
         this.triageRepository = triageRepository;
+        this.patientClient = patientClient;
+        this.schedulingClient = schedulingClient;
     }
 
     @Override
     public TriageDTO createTriage(TriageDTO dto) {
+
+        // Validar se o paciente existe no patient-service
+        PatientResponseDTO patient;
+
+        try {
+            patient = patientClient.getPatientById(dto.patientId());
+        } catch (FeignException.NotFound ex) {
+            throw new RuntimeException("Paciente não encontrado com ID: " + dto.patientId());
+        } catch (FeignException ex) {
+            throw new RuntimeException("Erro ao comunicar com o patient-service.");
+        }
+
+        if (patient == null || patient.id() == null) {
+            throw new RuntimeException("Paciente não encontrado com ID: " + dto.patientId());
+        }
+
+        // Validar se a consulta existe no scheduling-service
+        AppointmentResponseDTO appointment;
+
+        try {
+            appointment = schedulingClient.getAppointmentById(dto.appointmentId());
+        } catch (FeignException.NotFound ex) {
+            throw new RuntimeException("Consulta não encontrada com ID: " + dto.appointmentId());
+        } catch (FeignException ex) {
+            throw new RuntimeException("Erro ao comunicar com o scheduling-service.");
+        }
+
+        if (appointment == null || appointment.id() == null) {
+            throw new RuntimeException("Consulta não encontrada com ID: " + dto.appointmentId());
+        }
+
+        // Validar se a consulta pertence ao mesmo paciente informado na triagem
+        if (!appointment.patientId().equals(dto.patientId())) {
+            throw new RuntimeException("A consulta informada não pertence ao paciente informado.");
+        }
 
         // Uma consulta/agendamento deve ter apenas uma triagem
         if (triageRepository.existsByAppointmentId(dto.appointmentId())) {
