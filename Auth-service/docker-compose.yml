@@ -1,28 +1,43 @@
-version: "3.8"
-
 services:
-  postgres:
+  auth-postgres:
     image: postgres:16-alpine
     container_name: auth-postgres
     environment:
-      POSTGRES_DB: auth_bd
-      POSTGRES_USER: post_user
-      POSTGRES_PASSWORD: post_password
+      POSTGRES_DB: auth
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"
+      - "5438:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - auth_postgres_data:/var/lib/postgresql/data
     networks:
       - auth-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U post_user -d auth_bd"]
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  auth-service:
+    build:
+      context: .
+    container_name: auth-service
+    depends_on:
+      - auth-postgres
+    environment:
+      SERVER_PORT: 8085
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth
+      SPRING_DATASOURCE_USERNAME: auth_user
+      SPRING_DATASOURCE_PASSWORD: auth_password
+      JWT_SECRET: healthflow-secret-key
+    ports:
+      - "8085:8085"
+    networks:
+      - auth-network
+
 volumes:
-  postgres_data:
+  auth_postgres_data:
     driver: local
 
 networks:

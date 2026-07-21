@@ -1,5 +1,5 @@
 services:
-  postgres:
+  patient-postgres:
     image: postgres:16-alpine
     container_name: patiente-postgres
     environment:
@@ -10,19 +10,35 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - patient_postgres_data:/var/lib/postgresql/data
     networks:
-      - patiente-network
+      - patient-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U post_user -d patiente"]
       interval: 10s
       timeout: 5s
       retries: 5
 
+  patient-service:
+    build:
+      context: .
+    container_name: patient-service
+    depends_on:
+      - patient-postgres
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-postgres:5432/patiente
+      SPRING_DATASOURCE_USERNAME: post_user
+      SPRING_DATASOURCE_PASSWORD: post_password
+    ports:
+      - "8081:8081"
+    networks:
+      - patient-network
+
 volumes:
-  postgres_data:
+  patient_postgres_data:
     driver: local
 
 networks:
-  patiente-network:
+  patient-network:
     driver: bridge

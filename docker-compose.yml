@@ -1,0 +1,235 @@
+services:
+
+  auth-postgres:
+    image: postgres:16-alpine
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5438:5432"
+    volumes:
+      - auth_postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U auth_user -d auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  patient-postgres:
+    image: postgres:16-alpine
+    container_name: patient-postgres
+    environment:
+      POSTGRES_DB: patiente
+      POSTGRES_USER: post_user
+      POSTGRES_PASSWORD: post_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5434:5432"
+    volumes:
+      - patient_postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U post_user -d patiente"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  doctor-postgres:
+    image: postgres:16-alpine
+    container_name: doctor-postgres
+    environment:
+      POSTGRES_DB: doctor
+      POSTGRES_USER: doctor_user
+      POSTGRES_PASSWORD: doctor_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5435:5432"
+    volumes:
+      - doctor_postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doctor_user -d doctor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  scheduling-postgres:
+    image: postgres:16-alpine
+    container_name: scheduling-postgres
+    environment:
+      POSTGRES_DB: scheduling
+      POSTGRES_USER: scheduling_user
+      POSTGRES_PASSWORD: scheduling_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5436:5432"
+    volumes:
+      - scheduling_postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scheduling_user -d scheduling"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  triage-postgres:
+    image: postgres:16-alpine
+    container_name: triage-postgres
+    environment:
+      POSTGRES_DB: triage
+      POSTGRES_USER: triage_user
+      POSTGRES_PASSWORD: triage_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5437:5432"
+    volumes:
+      - triage_postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U triage_user -d triage"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    depends_on:
+      auth-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8085
+      SPRING_DATASOURCE_URL: jdbc:postgresql://auth-postgres:5432/auth
+      SPRING_DATASOURCE_USERNAME: auth_user
+      SPRING_DATASOURCE_PASSWORD: auth_password
+      JWT_SECRET: healthflow-secret-key
+    ports:
+      - "8085:8085"
+    networks:
+      - healthflow-network
+
+  patient-service:
+    build:
+      context: ./patient-service
+    container_name: patient-service
+    depends_on:
+      patient-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://patient-postgres:5432/patiente
+      SPRING_DATASOURCE_USERNAME: post_user
+      SPRING_DATASOURCE_PASSWORD: post_password
+    ports:
+      - "8081:8081"
+    networks:
+      - healthflow-network
+
+  doctor-service:
+    build:
+      context: ./doctor-service
+    container_name: doctor-service
+    depends_on:
+      doctor-postgres:
+        condition: service_healthy
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://doctor-postgres:5432/doctor
+      SPRING_DATASOURCE_USERNAME: doctor_user
+      SPRING_DATASOURCE_PASSWORD: doctor_password
+    ports:
+      - "8082:8082"
+    networks:
+      - healthflow-network
+
+  scheduling-service:
+    build:
+      context: ./scheduling-service
+    container_name: scheduling-service
+    depends_on:
+      scheduling-postgres:
+        condition: service_healthy
+      patient-service:
+        condition: service_started
+      doctor-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://scheduling-postgres:5432/scheduling
+      SPRING_DATASOURCE_USERNAME: scheduling_user
+      SPRING_DATASOURCE_PASSWORD: scheduling_password
+
+      SERVICES_PATIENT_URL: http://patient-service:8081
+      SERVICES_DOCTOR_URL: http://doctor-service:8082
+    ports:
+      - "8083:8083"
+    networks:
+      - healthflow-network
+
+  triage-service:
+    build:
+      context: ./triage-service
+    container_name: triage-service
+    depends_on:
+      triage-postgres:
+        condition: service_healthy
+      patient-service:
+        condition: service_started
+      scheduling-service:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8084
+      SPRING_DATASOURCE_URL: jdbc:postgresql://triage-postgres:5432/triage
+      SPRING_DATASOURCE_USERNAME: triage_user
+      SPRING_DATASOURCE_PASSWORD: triage_password
+
+      SERVICES_PATIENT_URL: http://patient-service:8081
+      SERVICES_SCHEDULING_URL: http://scheduling-service:8083
+    ports:
+      - "8084:8084"
+    networks:
+      - healthflow-network
+
+  gateway:
+    build:
+      context: ./gateway
+    container_name: gateway
+    depends_on:
+      - auth-service
+      - patient-service
+      - doctor-service
+      - scheduling-service
+      - triage-service
+    environment:
+      SERVER_PORT: 8080
+
+      AUTH_SERVICE_URL: http://auth-service:8085
+      PATIENT_SERVICE_URL: http://patient-service:8081
+      DOCTOR_SERVICE_URL: http://doctor-service:8082
+      SCHEDULING_SERVICE_URL: http://scheduling-service:8083
+      TRIAGE_SERVICE_URL: http://triage-service:8084
+    ports:
+      - "8080:8080"
+    networks:
+      - healthflow-network
+
+volumes:
+  auth_postgres_data:
+  patient_postgres_data:
+  doctor_postgres_data:
+  scheduling_postgres_data:
+  triage_postgres_data:
+
+networks:
+  healthflow-network:
+    driver: bridge

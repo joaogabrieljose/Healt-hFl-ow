@@ -1,5 +1,4 @@
 package dev.joaogj.Auth.config;
-
 import jakarta.servlet.DispatcherType;
 
 import org.springframework.context.annotation.Bean;

@@ -1,5 +1,5 @@
 services:
-  postgres:
+  doctor-postgres:
     image: postgres:16-alpine
     container_name: doctor-postgres
     environment:
@@ -18,6 +18,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  doctor-service:
+    build:
+      context: .
+    container_name: doctor-service
+    depends_on:
+      - doctor-postgres
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://doctor-postgres:5432/doctor
+      SPRING_DATASOURCE_USERNAME: doctor_user
+      SPRING_DATASOURCE_PASSWORD: doctor_password
+    ports:
+      - "8082:8082"
+    networks:
+      - doctor-network
 
 volumes:
   doctor_postgres_data:
