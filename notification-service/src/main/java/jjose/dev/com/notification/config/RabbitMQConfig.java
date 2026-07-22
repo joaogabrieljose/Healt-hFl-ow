@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.notification.config;
+package jjose.dev.com.notification.config;
 
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;

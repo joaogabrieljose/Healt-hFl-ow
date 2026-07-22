@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.notification.messaging;
+package jjose.dev.com.notification.messaging;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;

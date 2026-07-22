@@ -1,4 +1,4 @@
-package main.java.jjose.dev.com.notification.events;
+package jjose.dev.com.notification.events;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
