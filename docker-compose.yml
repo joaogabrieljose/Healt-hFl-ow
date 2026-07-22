@@ -1,5 +1,22 @@
 services:
 
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: healthflow
+      RABBITMQ_DEFAULT_PASS: healthflow
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - healthflow-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-postgres:
     image: postgres:16-alpine
     container_name: auth-postgres
@@ -163,14 +180,22 @@ services:
         condition: service_started
       doctor-service:
         condition: service_started
+      rabbitmq:
+        condition: service_healthy
     environment:
       SERVER_PORT: 8083
+
       SPRING_DATASOURCE_URL: jdbc:postgresql://scheduling-postgres:5432/scheduling
       SPRING_DATASOURCE_USERNAME: scheduling_user
       SPRING_DATASOURCE_PASSWORD: scheduling_password
 
       SERVICES_PATIENT_URL: http://patient-service:8081
       SERVICES_DOCTOR_URL: http://doctor-service:8082
+
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: healthflow
+      SPRING_RABBITMQ_PASSWORD: healthflow
     ports:
       - "8083:8083"
     networks:
@@ -189,6 +214,7 @@ services:
         condition: service_started
     environment:
       SERVER_PORT: 8084
+
       SPRING_DATASOURCE_URL: jdbc:postgresql://triage-postgres:5432/triage
       SPRING_DATASOURCE_USERNAME: triage_user
       SPRING_DATASOURCE_PASSWORD: triage_password
@@ -233,15 +259,3 @@ volumes:
 networks:
   healthflow-network:
     driver: bridge
-
-rabbitmq:
-  image: rabbitmq:3-management-alpine
-  container_name: rabbitmq
-  environment:
-    RABBITMQ_DEFAULT_USER: healthflow
-    RABBITMQ_DEFAULT_PASS: healthflow
-  ports:
-    - "5672:5672"
-    - "15672:15672"
-  networks:
-    - healthflow-network
