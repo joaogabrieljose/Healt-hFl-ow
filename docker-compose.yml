@@ -3,12 +3,16 @@ services:
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq
+    hostname: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: healthflow
       RABBITMQ_DEFAULT_PASS: healthflow
+      RABBITMQ_NODENAME: rabbit@rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
       - healthflow-network
     healthcheck:
@@ -255,6 +259,7 @@ volumes:
   doctor_postgres_data:
   scheduling_postgres_data:
   triage_postgres_data:
+  rabbitmq_data:
 
 networks:
   healthflow-network:

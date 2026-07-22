@@ -14,12 +14,11 @@ import jjose.dev.com.scheduling.client.dto.PatientResponseDTO;
 import jjose.dev.com.scheduling.domain.entity.Appointment;
 import jjose.dev.com.scheduling.domain.entity.AppointmentStatusHistory;
 import jjose.dev.com.scheduling.domain.enums.AppointmentStatus;
-
 import jjose.dev.com.scheduling.domain.repository.AppointmentRepository;
 import jjose.dev.com.scheduling.domain.repository.AppointmentStatusHistoryRepository;
-
 import jjose.dev.com.scheduling.dto.appointmentDTO.AppointmentDTO;
-
+import jjose.dev.com.scheduling.events.AppointmentCreatedEvent;
+import jjose.dev.com.scheduling.messaging.AppointmentEventPublisher;
 
 @Service
 public class AppointmentServiceImpl implements AppointmentService {
@@ -29,16 +28,21 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final PatientClient patientClient;
     private final DoctorClient doctorClient;
 
+    // Novo: publisher responsável por publicar eventos no RabbitMQ
+    private final AppointmentEventPublisher appointmentEventPublisher;
+
     public AppointmentServiceImpl(
             AppointmentRepository appointmentRepository,
             AppointmentStatusHistoryRepository statusHistoryRepository,
             PatientClient patientClient,
-            DoctorClient doctorClient
+            DoctorClient doctorClient,
+            AppointmentEventPublisher appointmentEventPublisher
     ) {
         this.appointmentRepository = appointmentRepository;
         this.statusHistoryRepository = statusHistoryRepository;
         this.patientClient = patientClient;
         this.doctorClient = doctorClient;
+        this.appointmentEventPublisher = appointmentEventPublisher;
     }
 
     @Override
@@ -102,7 +106,7 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
-        // Cria histórico inicial
+        // Cria histórico inicial da consulta
         AppointmentStatusHistory history = new AppointmentStatusHistory();
         history.setAppointment(savedAppointment);
         history.setPreviousStatus(null);
@@ -111,6 +115,21 @@ public class AppointmentServiceImpl implements AppointmentService {
         history.setChangedAt(LocalDateTime.now());
 
         statusHistoryRepository.save(history);
+
+        // Novo: publicar evento no RabbitMQ depois da consulta ser criada
+        AppointmentCreatedEvent event = new AppointmentCreatedEvent(
+                savedAppointment.getId(),
+                savedAppointment.getPatientId(),
+                savedAppointment.getDoctorId(),
+                savedAppointment.getAppointmentDate(),
+                savedAppointment.getStartTime(),
+                savedAppointment.getEndTime(),
+                savedAppointment.getReason(),
+                savedAppointment.getStatus().name(),
+                savedAppointment.getCreatedAt()
+        );
+
+        appointmentEventPublisher.publishAppointmentCreated(event);
 
         return toDTO(savedAppointment);
     }
