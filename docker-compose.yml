@@ -121,6 +121,26 @@ services:
       timeout: 5s
       retries: 5
 
+  notification-postgres:
+    image: postgres:16-alpine
+    container_name: notification-postgres
+    environment:
+      POSTGRES_DB: notification
+      POSTGRES_USER: notification_user
+      POSTGRES_PASSWORD: notification_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5439:5432"
+    volumes:
+      - notification_postgres_data:/var/lib/postgresql/data
+    networks:
+      - healthflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification_user -d notification"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   auth-service:
     build:
       context: ./auth-service
@@ -235,10 +255,16 @@ services:
       context: ./notification-service
     container_name: notification-service
     depends_on:
+      notification-postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     environment:
       SERVER_PORT: 8086
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://notification-postgres:5432/notification
+      SPRING_DATASOURCE_USERNAME: notification_user
+      SPRING_DATASOURCE_PASSWORD: notification_password
 
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
@@ -280,6 +306,7 @@ volumes:
   doctor_postgres_data:
   scheduling_postgres_data:
   triage_postgres_data:
+  notification_postgres_data:
   rabbitmq_data:
 
 networks:
