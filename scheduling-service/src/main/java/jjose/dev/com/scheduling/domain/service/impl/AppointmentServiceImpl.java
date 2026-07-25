@@ -16,7 +16,6 @@ import jjose.dev.com.scheduling.domain.entity.AppointmentStatusHistory;
 import jjose.dev.com.scheduling.domain.enums.AppointmentStatus;
 import jjose.dev.com.scheduling.domain.repository.AppointmentRepository;
 import jjose.dev.com.scheduling.domain.repository.AppointmentStatusHistoryRepository;
-import jjose.dev.com.scheduling.domain.service.AppointmentService;
 import jjose.dev.com.scheduling.dto.appointmentDTO.AppointmentDTO;
 import jjose.dev.com.scheduling.events.AppointmentCreatedEvent;
 import jjose.dev.com.scheduling.events.AppointmentStatusChangedEvent;
