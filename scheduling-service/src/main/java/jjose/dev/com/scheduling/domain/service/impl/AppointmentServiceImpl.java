@@ -16,8 +16,10 @@ import jjose.dev.com.scheduling.domain.entity.AppointmentStatusHistory;
 import jjose.dev.com.scheduling.domain.enums.AppointmentStatus;
 import jjose.dev.com.scheduling.domain.repository.AppointmentRepository;
 import jjose.dev.com.scheduling.domain.repository.AppointmentStatusHistoryRepository;
+import jjose.dev.com.scheduling.domain.service.AppointmentService;
 import jjose.dev.com.scheduling.dto.appointmentDTO.AppointmentDTO;
 import jjose.dev.com.scheduling.events.AppointmentCreatedEvent;
+import jjose.dev.com.scheduling.events.AppointmentStatusChangedEvent;
 import jjose.dev.com.scheduling.messaging.AppointmentEventPublisher;
 
 @Service
@@ -27,8 +29,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AppointmentStatusHistoryRepository statusHistoryRepository;
     private final PatientClient patientClient;
     private final DoctorClient doctorClient;
-
-    // Novo: publisher responsável por publicar eventos no RabbitMQ
     private final AppointmentEventPublisher appointmentEventPublisher;
 
     public AppointmentServiceImpl(
@@ -48,7 +48,6 @@ public class AppointmentServiceImpl implements AppointmentService {
     @Override
     public AppointmentDTO createAppointment(AppointmentDTO dto) {
 
-        // Validar se o paciente existe no patient-service
         PatientResponseDTO patient;
 
         try {
@@ -63,7 +62,6 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new RuntimeException("Paciente não encontrado com ID: " + dto.patientId());
         }
 
-        // Validar se o médico existe no doctor-service
         DoctorResponseDTO doctor;
 
         try {
@@ -78,12 +76,10 @@ public class AppointmentServiceImpl implements AppointmentService {
             throw new RuntimeException("Médico não encontrado com ID: " + dto.doctorId());
         }
 
-        // Não permitir marcação com médico inativo
         if (!"ACTIVE".equalsIgnoreCase(doctor.status())) {
             throw new RuntimeException("Não é possível marcar consulta com um médico inativo.");
         }
 
-        // Verifica se o médico já tem consulta marcada na mesma data e hora
         boolean existsAppointment = appointmentRepository.existsByDoctorIdAndAppointmentDateAndStartTime(
                 dto.doctorId(),
                 dto.appointmentDate(),
@@ -96,7 +92,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment appointment = toEntity(dto);
 
-        // Se o status vier vazio, assume SCHEDULED como padrão
         if (appointment.getStatus() == null) {
             appointment.setStatus(AppointmentStatus.SCHEDULED);
         }
@@ -106,7 +101,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment savedAppointment = appointmentRepository.save(appointment);
 
-        // Cria histórico inicial da consulta
         AppointmentStatusHistory history = new AppointmentStatusHistory();
         history.setAppointment(savedAppointment);
         history.setPreviousStatus(null);
@@ -116,7 +110,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         statusHistoryRepository.save(history);
 
-        // Novo: publicar evento no RabbitMQ depois da consulta ser criada
         AppointmentCreatedEvent event = new AppointmentCreatedEvent(
                 savedAppointment.getId(),
                 savedAppointment.getPatientId(),
@@ -218,7 +211,6 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         Appointment updatedAppointment = appointmentRepository.save(appointment);
 
-        // Guarda histórico da alteração de estado
         AppointmentStatusHistory history = new AppointmentStatusHistory();
         history.setAppointment(updatedAppointment);
         history.setPreviousStatus(previousStatus);
@@ -227,6 +219,18 @@ public class AppointmentServiceImpl implements AppointmentService {
         history.setChangedAt(LocalDateTime.now());
 
         statusHistoryRepository.save(history);
+
+        AppointmentStatusChangedEvent event = new AppointmentStatusChangedEvent(
+                updatedAppointment.getId(),
+                updatedAppointment.getPatientId(),
+                updatedAppointment.getDoctorId(),
+                previousStatus != null ? previousStatus.name() : null,
+                newStatus.name(),
+                reason,
+                LocalDateTime.now()
+        );
+
+        appointmentEventPublisher.publishAppointmentStatusChanged(event);
 
         return toDTO(updatedAppointment);
     }

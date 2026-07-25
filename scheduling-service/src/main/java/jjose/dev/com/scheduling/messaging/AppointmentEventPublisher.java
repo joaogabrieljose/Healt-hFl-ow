@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import jjose.dev.com.scheduling.config.RabbitMQConfig;
 import jjose.dev.com.scheduling.events.AppointmentCreatedEvent;
+import jjose.dev.com.scheduling.events.AppointmentStatusChangedEvent;
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -16,7 +17,15 @@ public class AppointmentEventPublisher {
     public void publishAppointmentCreated(AppointmentCreatedEvent event) {
         rabbitTemplate.convertAndSend(
                 RabbitMQConfig.HEALTHFLOW_EXCHANGE,
-                RabbitMQConfig.APPOINTMENT_CREATED_ROUTING_KEY,
+                "appointment.created",
+                event
+        );
+    }
+
+    public void publishAppointmentStatusChanged(AppointmentStatusChangedEvent event) {
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.HEALTHFLOW_EXCHANGE,
+                "appointment.status.changed",
                 event
         );
     }
