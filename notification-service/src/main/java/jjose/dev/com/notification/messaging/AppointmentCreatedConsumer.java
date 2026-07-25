@@ -3,10 +3,17 @@ package jjose.dev.com.notification.messaging;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
+import jjose.dev.com.notification.domain.service.NotificationService;
 import jjose.dev.com.notification.events.AppointmentCreatedEvent;
 
 @Component
 public class AppointmentCreatedConsumer {
+
+    private final NotificationService notificationService;
+
+    public AppointmentCreatedConsumer(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
 
     @RabbitListener(queues = "notification.appointment.created.queue")
     public void consumeAppointmentCreated(AppointmentCreatedEvent event) {
@@ -22,5 +29,7 @@ public class AppointmentCreatedConsumer {
         System.out.println("Estado: " + event.status());
         System.out.println("Criada em: " + event.createdAt());
         System.out.println("======================================");
+
+        notificationService.saveAppointmentCreatedNotification(event);
     }
 }
