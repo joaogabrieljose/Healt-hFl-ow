@@ -1,17 +1,24 @@
-  notification-service:
+  audit-service:
     build:
-      context: ./notification-service
-    container_name: notification-service
+      context: ./audit-service
+    container_name: audit-service
     depends_on:
+      audit-postgres:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     environment:
-      SERVER_PORT: 8086
+      SERVER_PORT: 8087
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://audit-postgres:5432/audit
+      SPRING_DATASOURCE_USERNAME: audit_user
+      SPRING_DATASOURCE_PASSWORD: audit_password
+
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_PORT: 5672
       SPRING_RABBITMQ_USERNAME: healthflow
       SPRING_RABBITMQ_PASSWORD: healthflow
     ports:
-      - "8086:8086"
+      - "8087:8087"
     networks:
       - healthflow-network
