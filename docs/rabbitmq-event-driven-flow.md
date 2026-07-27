@@ -40,6 +40,5 @@ Principais responsabilidades:
 
 Eventos publicados:
 
-```text
 appointment.created
 appointment.status.changed
