@@ -1,59 +1,56 @@
-package jjose.dev.com.gateway.security;
+package pt.com.jjose.gatway.security;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 
 @Service
 public class JwtService {
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    @Value("${api.security.token.secret}")
+    private String secret;
 
     public boolean isTokenValid(String token) {
         try {
-            Claims claims = extractAllClaims(token);
-            return claims.getExpiration().after(new Date());
+            DecodedJWT decodedJWT = verifyToken(token);
+
+            Date expiresAt = decodedJWT.getExpiresAt();
+
+            return expiresAt != null && expiresAt.after(new Date());
+
         } catch (Exception exception) {
+            System.out.println("Erro ao validar token no Gateway: " + exception.getMessage());
             return false;
         }
     }
 
     public String extractEmail(String token) {
-        return extractAllClaims(token).getSubject();
+        DecodedJWT decodedJWT = verifyToken(token);
+        return decodedJWT.getSubject();
     }
 
     public List<String> extractRoles(String token) {
-        Claims claims = extractAllClaims(token);
+        DecodedJWT decodedJWT = verifyToken(token);
 
-        Object roles = claims.get("roles");
+        List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
 
-        if (roles instanceof List<?> roleList) {
-            return roleList.stream()
-                    .map(Object::toString)
-                    .toList();
+        if (roles == null) {
+            return List.of();
         }
 
-        return List.of();
+        return roles;
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSigningKey())
+    private DecodedJWT verifyToken(String token) {
+        Algorithm algorithm = Algorithm.HMAC256(secret);
+
+        return JWT.require(algorithm)
                 .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
-
-    private SecretKey getSigningKey() {
-        byte[] keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
-        return Keys.hmacShaKeyFor(keyBytes);
+                .verify(token);
     }
 }

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.auth0.jwt.JWT;
@@ -16,14 +17,18 @@ import dev.joaogj.Auth.entity.User;
 @Component
 public class TokenConfig {
 
-    // ALTERADO:
-    // Coloquei final porque o secret não deve mudar durante a execução.
-    private final String secret = "secret";
+    @Value("${api.security.token.secret}")
+    private String secret;
 
     public String generatedToken(User user) {
 
         Algorithm algoritmo = Algorithm.HMAC256(secret);
-        List<String> roles = user.getRoles().stream().map(role -> role.name()).toList();
+
+        List<String> roles = user.getRoles()
+                .stream()
+                .map(role -> role.name())
+                .toList();
+
         if (roles.isEmpty()) {
             throw new RuntimeException("Utilizador sem role definida");
         }
@@ -49,9 +54,11 @@ public class TokenConfig {
             String email = decodedJWT.getSubject();
 
             List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+
             if (userId == null || email == null || email.isBlank()) {
                 return Optional.empty();
             }
+
             if (roles == null) {
                 roles = List.of();
             }
