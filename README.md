@@ -35,6 +35,13 @@ Cada serviço possui:
 - Configuração independente;
 - Possibilidade de execução em container Docker.
 
+
+Os testes da API foram realizados com o Postman, utilizando o API Gateway como ponto único de entrada. 
+Foram testados os fluxos de autenticação, autorização por perfis, gestão de pacientes, médicos, especialidades, consultas, triagem, notificações e auditoria.
+
+Também foram testadas restrições de acesso com JWT, garantindo que utilizadores com ROLE_USER possuem acesso limitado e utilizadores com ROLE_ADMIN possuem acesso administrativo.
+
+
 Fluxo simplificado:
 
 ```text
