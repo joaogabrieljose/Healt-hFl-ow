@@ -3,6 +3,7 @@ package pt.com.jjose.gatway.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,26 +28,118 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
 
-                        // Endpoints públicos
+                        // ==========================
+                        // ROTAS PÚBLICAS
+                        // ==========================
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/register").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
 
-                        // Endpoints protegidos por perfil
+                        // ==========================
+                        // AUDITORIA
+                        // Apenas ADMIN
+                        // ==========================
                         .requestMatchers("/api/audit-logs/**").hasRole("ADMIN")
-                        .requestMatchers("/api/notifications/**").hasAnyRole("ADMIN", "USER")
 
-                        // Restantes endpoints protegidos
-                        .requestMatchers("/api/patients/**").authenticated()
-                        .requestMatchers("/api/doctors/**").authenticated()
-                        .requestMatchers("/api/specialties/**").authenticated()
-                        .requestMatchers("/api/appointments/**").authenticated()
-                        .requestMatchers("/api/appointment-history/**").authenticated()
-                        .requestMatchers("/api/triages/**").authenticated()
-                        .requestMatchers("/api/vital-signs/**").authenticated()
+                        // ==========================
+                        // NOTIFICAÇÕES
+                        // USER e ADMIN podem consultar
+                        // ==========================
+                        .requestMatchers(HttpMethod.GET, "/api/notifications/**")
+                        .hasAnyRole("USER", "ADMIN")
 
-                        // Qualquer outra rota exige autenticação
-                        .anyRequest().authenticated()
+                        // ==========================
+                        // PACIENTES
+                        // USER e ADMIN podem consultar
+                        // Apenas ADMIN pode criar, editar e apagar
+                        // ==========================
+                        .requestMatchers(HttpMethod.GET, "/api/patients/**")
+                        .hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/patients/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/patients/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/patients/**")
+                        .hasRole("ADMIN")
+
+                        // ==========================
+                        // MÉDICOS
+                        // USER e ADMIN podem consultar
+                        // Apenas ADMIN pode criar, editar e apagar
+                        // ==========================
+                        .requestMatchers(HttpMethod.GET, "/api/doctors/**")
+                        .hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/doctors/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/doctors/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/doctors/**")
+                        .hasRole("ADMIN")
+
+                        // ==========================
+                        // ESPECIALIDADES
+                        // USER e ADMIN podem consultar
+                        // Apenas ADMIN pode criar, editar e apagar
+                        // ==========================
+                        .requestMatchers(HttpMethod.GET, "/api/specialties/**")
+                        .hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/specialties/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/specialties/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/specialties/**")
+                        .hasRole("ADMIN")
+
+                        // ==========================
+                        // CONSULTAS
+                        // USER e ADMIN podem consultar
+                        // Apenas ADMIN pode criar e alterar estado
+                        // ==========================
+                        .requestMatchers(HttpMethod.GET, "/api/appointments/**")
+                        .hasAnyRole("USER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/api/appointments/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PATCH, "/api/appointments/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.PUT, "/api/appointments/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers(HttpMethod.DELETE, "/api/appointments/**")
+                        .hasRole("ADMIN")
+
+                        // ==========================
+                        // HISTÓRICO DE CONSULTAS
+                        // USER e ADMIN podem consultar
+                        // ==========================
+                        .requestMatchers(HttpMethod.GET, "/api/appointment-history/**")
+                        .hasAnyRole("USER", "ADMIN")
+
+                        // ==========================
+                        // TRIAGEM
+                        // Apenas ADMIN
+                        // ==========================
+                        .requestMatchers("/api/triages/**")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/vital-signs/**")
+                        .hasRole("ADMIN")
+
+                        // ==========================
+                        // QUALQUER OUTRA ROTA
+                        // Bloqueada por segurança
+                        // ==========================
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
