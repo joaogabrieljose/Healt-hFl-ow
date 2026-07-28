@@ -33,6 +33,26 @@ public class SecurityConfig {
                         // ==========================
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/register").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+
+                        // ==========================
+                        // SWAGGER DO API GATEWAY
+                        // ==========================
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/api-docs/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+
+                        // ==========================
+                        // SWAGGER DOS MICROSERVIÇOS
+                        // ==========================
+                        .requestMatchers("/auth-docs/**").permitAll()
+                        .requestMatchers("/patient-docs/**").permitAll()
+                        .requestMatchers("/doctor-docs/**").permitAll()
+                        .requestMatchers("/scheduling-docs/**").permitAll()
+                        .requestMatchers("/triage-docs/**").permitAll()
+                        .requestMatchers("/notification-docs/**").permitAll()
+                        .requestMatchers("/audit-docs/**").permitAll()
 
                         // ==========================
                         // AUDITORIA

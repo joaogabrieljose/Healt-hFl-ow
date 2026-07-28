@@ -7,6 +7,10 @@ spring:
       server:
         webmvc:
           routes:
+            # ==========================
+            # AUTH SERVICE
+            # /api/auth/** -> auth-service:/auth/**
+            # ==========================
             - id: auth-service
               uri: ${AUTH_SERVICE_URL:http://localhost:8085}
               predicates:
@@ -14,6 +18,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # PATIENT SERVICE
+            # /api/patients/** -> patient-service:/patients/**
+            # ==========================
             - id: patient-service
               uri: ${PATIENT_SERVICE_URL:http://localhost:8081}
               predicates:
@@ -21,6 +29,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # DOCTOR SERVICE
+            # /api/doctors/** -> doctor-service:/doctors/**
+            # ==========================
             - id: doctor-service
               uri: ${DOCTOR_SERVICE_URL:http://localhost:8082}
               predicates:
@@ -28,6 +40,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # SPECIALTY SERVICE
+            # /api/specialties/** -> doctor-service:/specialties/**
+            # ==========================
             - id: specialty-service
               uri: ${DOCTOR_SERVICE_URL:http://localhost:8082}
               predicates:
@@ -35,6 +51,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # SCHEDULING SERVICE
+            # /api/appointments/** -> scheduling-service:/appointments/**
+            # ==========================
             - id: scheduling-service
               uri: ${SCHEDULING_SERVICE_URL:http://localhost:8083}
               predicates:
@@ -42,6 +62,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # APPOINTMENT HISTORY SERVICE
+            # /api/appointment-history/** -> scheduling-service:/appointment-history/**
+            # ==========================
             - id: appointment-history-service
               uri: ${SCHEDULING_SERVICE_URL:http://localhost:8083}
               predicates:
@@ -49,6 +73,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # TRIAGE SERVICE
+            # /api/triages/** -> triage-service:/triages/**
+            # ==========================
             - id: triage-service
               uri: ${TRIAGE_SERVICE_URL:http://localhost:8084}
               predicates:
@@ -56,6 +84,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # VITAL SIGNS SERVICE
+            # /api/vital-signs/** -> triage-service:/vital-signs/**
+            # ==========================
             - id: vital-signs-service
               uri: ${TRIAGE_SERVICE_URL:http://localhost:8084}
               predicates:
@@ -63,6 +95,10 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # NOTIFICATION SERVICE
+            # /api/notifications/** -> notification-service:/notifications/**
+            # ==========================
             - id: notification-service
               uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
               predicates:
@@ -70,10 +106,91 @@ spring:
               filters:
                 - StripPrefix=1
 
+            # ==========================
+            # AUDIT SERVICE
+            # /api/audit-logs/** -> audit-service:/audit-logs/**
+            # ==========================
             - id: audit-service
               uri: ${AUDIT_SERVICE_URL:http://localhost:8087}
               predicates:
                 - Path=/api/audit-logs/**
+              filters:
+                - StripPrefix=1
+
+            # =====================================================
+            # SWAGGER DOCS - AUTH SERVICE
+            # /auth-docs/api-docs -> auth-service:/api-docs
+            # =====================================================
+            - id: auth-service-docs
+              uri: ${AUTH_SERVICE_URL:http://localhost:8085}
+              predicates:
+                - Path=/auth-docs/**
+              filters:
+                - StripPrefix=1
+
+            # =====================================================
+            # SWAGGER DOCS - PATIENT SERVICE
+            # /patient-docs/api-docs -> patient-service:/api-docs
+            # =====================================================
+            - id: patient-service-docs
+              uri: ${PATIENT_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/patient-docs/**
+              filters:
+                - StripPrefix=1
+
+            # =====================================================
+            # SWAGGER DOCS - DOCTOR SERVICE
+            # /doctor-docs/api-docs -> doctor-service:/api-docs
+            # =====================================================
+            - id: doctor-service-docs
+              uri: ${DOCTOR_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/doctor-docs/**
+              filters:
+                - StripPrefix=1
+
+            # =====================================================
+            # SWAGGER DOCS - SCHEDULING SERVICE
+            # /scheduling-docs/api-docs -> scheduling-service:/api-docs
+            # =====================================================
+            - id: scheduling-service-docs
+              uri: ${SCHEDULING_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/scheduling-docs/**
+              filters:
+                - StripPrefix=1
+
+            # =====================================================
+            # SWAGGER DOCS - TRIAGE SERVICE
+            # /triage-docs/api-docs -> triage-service:/api-docs
+            # =====================================================
+            - id: triage-service-docs
+              uri: ${TRIAGE_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/triage-docs/**
+              filters:
+                - StripPrefix=1
+
+            # =====================================================
+            # SWAGGER DOCS - NOTIFICATION SERVICE
+            # /notification-docs/api-docs -> notification-service:/api-docs
+            # =====================================================
+            - id: notification-service-docs
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8086}
+              predicates:
+                - Path=/notification-docs/**
+              filters:
+                - StripPrefix=1
+
+            # =====================================================
+            # SWAGGER DOCS - AUDIT SERVICE
+            # /audit-docs/api-docs -> audit-service:/api-docs
+            # =====================================================
+            - id: audit-service-docs
+              uri: ${AUDIT_SERVICE_URL:http://localhost:8087}
+              predicates:
+                - Path=/audit-docs/**
               filters:
                 - StripPrefix=1
 
@@ -85,6 +202,7 @@ management:
     web:
       exposure:
         include: health,info
+
   endpoint:
     health:
       show-details: always
@@ -93,3 +211,33 @@ api:
   security:
     token:
       secret: ${JWT_SECRET:healthflow-secret-key}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    urls:
+      - name: Auth Service
+        url: /auth-docs/api-docs
+
+      - name: Patient Service
+        url: /patient-docs/api-docs
+
+      - name: Doctor Service
+        url: /doctor-docs/api-docs
+
+      - name: Scheduling Service
+        url: /scheduling-docs/api-docs
+
+      - name: Triage Service
+        url: /triage-docs/api-docs
+
+      - name: Notification Service
+        url: /notification-docs/api-docs
+
+      - name: Audit Service
+        url: /audit-docs/api-docs

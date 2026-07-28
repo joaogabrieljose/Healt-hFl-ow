@@ -30,12 +30,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        if (path.startsWith("/api/auth/login") || path.startsWith("/api/auth/register")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        // ==========================
+        // ROTAS PÚBLICAS
+        if (path.startsWith("/api/auth/login") ||
+                path.startsWith("/api/auth/register") ||
+                path.startsWith("/actuator/health") ||
 
-        if (path.startsWith("/actuator/health")) {
+                // Swagger do Gateway
+                path.startsWith("/swagger-ui") ||
+                path.startsWith("/swagger-ui.html") ||
+                path.startsWith("/api-docs") ||
+                path.startsWith("/v3/api-docs") ||
+
+                // Swagger dos microserviços via Gateway
+                path.startsWith("/auth-docs") ||
+                path.startsWith("/patient-docs") ||
+                path.startsWith("/doctor-docs") ||
+                path.startsWith("/scheduling-docs") ||
+                path.startsWith("/triage-docs") ||
+                path.startsWith("/notification-docs") ||
+                path.startsWith("/audit-docs")) {
+
             filterChain.doFilter(request, response);
             return;
         }
