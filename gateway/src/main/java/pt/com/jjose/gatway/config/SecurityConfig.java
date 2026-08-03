@@ -29,20 +29,23 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // ==========================
-                        // ROTAS PÚBLICAS
+                        // ROTAS PÚBLICAS - AUTH
                         // ==========================
                         .requestMatchers("/api/auth/login").permitAll()
                         .requestMatchers("/api/auth/register").permitAll()
 
                         // ==========================
-                        // ACTUATOR / PROMETHEUS
+                        // ROTAS PÚBLICAS - ACTUATOR / PROMETHEUS
                         // ==========================
+                        .requestMatchers("/actuator").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/info").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/prometheus/**").permitAll()
 
                         // ==========================
-                        // SWAGGER DO API GATEWAY
+                        // ROTAS PÚBLICAS - SWAGGER DO API GATEWAY
                         // ==========================
                         .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
@@ -50,7 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**").permitAll()
 
                         // ==========================
-                        // SWAGGER DOS MICROSERVIÇOS
+                        // ROTAS PÚBLICAS - SWAGGER DOS MICROSERVIÇOS
                         // ==========================
                         .requestMatchers("/auth-docs/**").permitAll()
                         .requestMatchers("/patient-docs/**").permitAll()

@@ -38,6 +38,17 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
+                        // ACTUATOR / PROMETHEUS
+                        
+                        .requestMatchers(
+                                "/actuator",
+                                "/actuator/**",
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/actuator/prometheus",
+                                "/actuator/prometheus/**"
+                        ).permitAll()
+                        
                         // Endpoints públicos
                         .requestMatchers(
                                 "/auth/login",

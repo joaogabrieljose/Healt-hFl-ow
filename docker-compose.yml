@@ -349,6 +349,25 @@ services:
     networks:
       - healthflow-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    depends_on:
+      - gateway
+      - auth-service
+      - patient-service
+      - doctor-service
+      - scheduling-service
+      - triage-service
+      - notification-service
+      - audit-service
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - healthflow-network
+
 volumes:
   auth_postgres_data:
   patient_postgres_data:
