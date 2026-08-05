@@ -337,8 +337,10 @@ services:
       - triage-service
       - notification-service
       - audit-service
+      - jaeger
     environment:
       SERVER_PORT: 8080
+      SPRING_APPLICATION_NAME: gateway
 
       JWT_SECRET: healthflow-secret-key
 
@@ -349,6 +351,9 @@ services:
       TRIAGE_SERVICE_URL: http://triage-service:8084
       NOTIFICATION_SERVICE_URL: http://notification-service:8086
       AUDIT_SERVICE_URL: http://audit-service:8087
+
+      MANAGEMENT_TRACING_SAMPLING_PROBABILITY: 1.0
+      MANAGEMENT_OPENTELEMETRY_TRACING_EXPORT_OTLP_ENDPOINT: http://jaeger:4318/v1/traces
     ports:
       - "8080:8080"
     networks:
@@ -372,14 +377,14 @@ services:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - healthflow-network
-  
-
 
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     depends_on:
       - prometheus
+      - loki
+      - jaeger
     ports:
       - "3000:3000"
     environment:
@@ -391,7 +396,6 @@ services:
     networks:
       - healthflow-network
 
-
   loki:
     image: grafana/loki:latest
     container_name: loki
@@ -401,6 +405,18 @@ services:
     volumes:
       - ./monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml
       - loki_data:/loki
+    networks:
+      - healthflow-network
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
     networks:
       - healthflow-network
 
